@@ -15,7 +15,7 @@ class _LoginFormState extends State<LoginForm> {
 
   TextField _buildPasswordTextField() {
     return TextField(
-      controller: _passwordController..text = '1234',
+      controller: _passwordController..text = '',
       decoration: InputDecoration(
         labelText: 'Password',
       ),
@@ -25,7 +25,7 @@ class _LoginFormState extends State<LoginForm> {
 
   TextField _buildLoginTextField() {
     return TextField(
-      controller: _loginController..text = '605794494',
+      controller: _loginController..text = '',
       decoration: InputDecoration(
         labelText: 'Login',
       ),

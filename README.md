@@ -1,16 +1,17 @@
 # hotelcovid19_app
 
-A new Flutter project.
+A Flutter project that provides an app that allows registered patients in [HotelCovid19](https://github.com/jahs-es/hotelcovid19) to provide, edit and delete 
+measures that show his health status at every time. That measure are sent to be monitorized by an admin.   
 
-## Getting Started
+## Technical aspects
 
-This project is a starting point for a Flutter application.
+Solution is done using bloc for state management. External data comes from a backend accessed using API Rest.
 
-A few resources to get you started if this is your first Flutter project:
+Security use JWT token to access secured endpoints. 
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+## Backend configuration 
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+In order to connect to backend service you must set `host` var in `api_path.dart` file. 
+
+
+ 

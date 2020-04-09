@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hotelcovid19_app/authentication/authentication.dart';
 import 'package:hotelcovid19_app/common/common.dart';
+import 'package:hotelcovid19_app/home_screen.dart';
 import 'package:hotelcovid19_app/login/login_page.dart';
+import 'package:hotelcovid19_app/measure/bloc/bloc.dart';
 import 'package:hotelcovid19_app/services/login_repository.dart';
 import 'package:hotelcovid19_app/splash/splash.dart';
-
-import 'measure/measure_list.dart';
 
 class SimpleBlocDelegate extends BlocDelegate {
   @override
@@ -53,14 +53,17 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'HotelCovid19',
+      title: 'Hcovid19',
       theme: ThemeData(
         primarySwatch: Colors.indigo,
       ),
       home: BlocBuilder<AuthenticationBloc, AuthenticationState>(
         builder: (context, state) {
           if (state is AuthenticationAuthenticated) {
-            return MeasureList();
+            return BlocProvider(
+              create: (BuildContext context) => MeasureBloc()..add(Fetch()),
+              child: HomeScreen(),
+            );
           }
           if (state is AuthenticationUnauthenticated) {
             return LoginPage();

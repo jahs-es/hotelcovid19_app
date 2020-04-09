@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:hotelcovid19_app/measure/models/measure.dart';
+import 'package:hotelcovid19_app/models/measure.dart';
 import 'package:hotelcovid19_app/services/api_path.dart';
 import 'package:hotelcovid19_app/services/login_repository.dart';
 import 'package:http/http.dart';
@@ -20,8 +20,6 @@ class MeasureRepository {
     Map<String, dynamic> data = measure.toJson();
 
     String jsonData = json.encode(data);
-
-    print("Lo grabado $jsonData");
 
     if (measure.id == null) {
       response = await Client().post(
@@ -44,7 +42,16 @@ class MeasureRepository {
     }
 
     if (response.statusCode ==201) {
-      return measure;
+//      try {
+//        Map<String, dynamic> mi = json.decode(response.body);
+//
+//        Measure editedMeasure = Measure.fromJson(mi);
+//
+//        return editedMeasure;
+//      } catch (e) {
+//        print(e);
+//      }
+      return Measure.fromJson(json.decode(response.body));
     } else if (response.statusCode == 200) {
       return measure;
     } else {
