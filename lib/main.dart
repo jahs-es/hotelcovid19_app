@@ -6,7 +6,7 @@ import 'package:hotelcovid19_app/common/common.dart';
 import 'package:hotelcovid19_app/login/login_page.dart';
 import 'package:hotelcovid19_app/services/login_repository.dart';
 import 'package:hotelcovid19_app/splash/splash.dart';
-import 'package:provider/provider.dart';
+
 import 'measure/measure_list.dart';
 
 class SimpleBlocDelegate extends BlocDelegate {
@@ -31,22 +31,25 @@ class SimpleBlocDelegate extends BlocDelegate {
 
 void main() {
   BlocSupervisor.delegate = SimpleBlocDelegate();
-
-  runApp(Provider<AuthBase>(
-    create: (context) => BackendAuthentication(),
-    child: BlocProvider<AuthenticationBloc>(
+  final backendAuthentication = BackendAuthentication();
+  runApp(
+    BlocProvider<AuthenticationBloc>(
       create: (context) {
-        final backendAuthentication = Provider.of<BackendAuthentication>(context);
-
         return AuthenticationBloc(backendAuthentication: backendAuthentication)
           ..add(AppStarted());
       },
-      child: App(),
+      child: App(backendAuthentication: backendAuthentication),
     ),
-  ));
+  );
 }
 
 class App extends StatelessWidget {
+  final BackendAuthentication backendAuthentication;
+
+  App({Key key, @required this.backendAuthentication})
+      : assert(backendAuthentication != null),
+        super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

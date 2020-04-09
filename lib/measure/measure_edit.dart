@@ -1,32 +1,23 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hotelcovid19_app/common/date_time_picker.dart';
 import 'package:hotelcovid19_app/common/platform_exception_alert_dialog.dart';
-import 'package:hotelcovid19_app/services/api_path.dart';
-import 'package:hotelcovid19_app/services/login_repository.dart';
-import 'package:http/http.dart' as http;
+import 'package:hotelcovid19_app/services/measure_repository.dart';
 
 import 'models/measure.dart';
 
 class MeasureEdit extends StatefulWidget {
   final Measure measure;
-  final BackendAuthentication backendAuthentication;
 
-  const MeasureEdit(
-      {Key key, this.measure, @required this.backendAuthentication})
-      : super(key: key);
+  const MeasureEdit({Key key, this.measure}) : super(key: key);
 
-  static Future<void> show(
-      {BuildContext context,
-      Measure measure,
-      BackendAuthentication backendAuthentication}) async {
+  static Future<void> show({
+    BuildContext context,
+    Measure measure,
+  }) async {
     await Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (context) => MeasureEdit(
-            measure: measure, backendAuthentication: backendAuthentication),
+        builder: (context) => MeasureEdit(measure: measure),
         fullscreenDialog: true,
       ),
     );
@@ -38,6 +29,7 @@ class MeasureEdit extends StatefulWidget {
 
 class _MeasureEditState extends State<MeasureEdit> {
   final _formKey = GlobalKey<FormState>();
+  final measureRepository = MeasureRepository();
 
   int _id;
   DateTime _date;
@@ -74,10 +66,12 @@ class _MeasureEditState extends State<MeasureEdit> {
   Future<void> _submit() async {
     if (_validateAndSaveForm()) {
       try {
-        DateTime dateToSend = new DateTime(_date.year, _date.month, _date.day, _time.hour, _time.minute);
-        final measure = Measure(id: _id, date: dateToSend, temperatureAt8: _temperatureAt8);
+        DateTime dateToSend = new DateTime(
+            _date.year, _date.month, _date.day, _time.hour, _time.minute);
+        final measure =
+            Measure(id: _id, date: dateToSend, temperatureAt8: _temperatureAt8);
 
-        await _sendMeasure(measure);
+        Measure savedMeasure = await measureRepository.save(measure);
 
         Navigator.of(context).pop();
       } catch (e) {
@@ -86,28 +80,6 @@ class _MeasureEditState extends State<MeasureEdit> {
           exception: e.toString(),
         ).show(context);
       }
-    }
-  }
-
-  Future<void> _sendMeasure(Measure measure) async {
-    String token = await widget.backendAuthentication.getToken();
-    Map<String, dynamic> data = measure.toJson();
-
-    String jsonData = json.encode(data);
-
-    final response = await http.Client().post(
-      APIPath.getMeasuresUrl,
-      headers: {
-        "Content-Type": "application/json",
-        HttpHeaders.authorizationHeader: "Bearer $token"
-      },
-      body: jsonData,
-    );
-
-    if (response.statusCode == 201) {
-      print('Saved');
-    } else {
-      throw Exception('Error saving measure');
     }
   }
 

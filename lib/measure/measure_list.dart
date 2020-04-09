@@ -1,25 +1,17 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hotelcovid19_app/authentication/authentication_bloc.dart';
 import 'package:hotelcovid19_app/authentication/authentication_event.dart';
-import 'package:hotelcovid19_app/common/platform_exception_alert_dialog.dart';
 import 'package:hotelcovid19_app/measure/bloc/bloc.dart';
-import 'package:hotelcovid19_app/services/api_path.dart';
-import 'package:hotelcovid19_app/services/login_repository.dart';
-import 'package:http/http.dart' as http;
+import 'package:hotelcovid19_app/services/measure_repository.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
+
 import 'measure_edit.dart';
 import 'models/measure.dart';
 
 class MeasureList extends StatelessWidget {
-
   @override
   Widget build(BuildContext context) {
-    final backendAuthentication = Provider.of<BackendAuthentication>(context);
-
     return Scaffold(
       appBar: AppBar(
         title: Text('Mis mediciones'),
@@ -39,18 +31,15 @@ class MeasureList extends StatelessWidget {
         ],
       ),
       body: BlocProvider(
-        create: (context) => MeasureBloc(
-          httpClient: http.Client(),
-          backendAuthentication: backendAuthentication,
-        )..add(Fetch()),
+        create: (context) => MeasureBloc()..add(Fetch()),
         child: MeasureListStatefull(),
       ),
       floatingActionButton: FloatingActionButton(
         child: Icon(Icons.add),
         onPressed: () => MeasureEdit.show(
-            context: context,
-            measure: null,
-            ),
+          context: context,
+          measure: null,
+        ),
       ),
     );
   }
@@ -72,32 +61,7 @@ class _MeasureListStatefullState extends State<MeasureListStatefull> {
 
   @override
   Widget build(BuildContext context) {
-    final backendAuthentication = Provider.of<BackendAuthentication>(context);
-
-    Future<void> _delete(BuildContext context, int measureId) async {
-      try {
-        String token = await backendAuthentication.getToken();
-
-        final response = await http.Client().delete(
-          APIPath.deleteMeasureUrl.replaceAll('{id}',measureId.toString()),
-          headers: {
-            "Content-Type": "application/json",
-            HttpHeaders.authorizationHeader: "Bearer $token"
-          }
-        );
-
-        if (response.statusCode == 204) {
-          print('Deleted');
-        } else {
-          throw Exception('Error deleting measure');
-        }
-      } catch (e) {
-        PlatformExceptionAlertDialog(
-          title: 'Delete operation failed',
-          exception: e,
-        ).show(context);
-      }
-    }
+    final measureRepository = MeasureRepository();
 
     return BlocBuilder<MeasureBloc, MeasureState>(
       builder: (context, state) {
@@ -121,10 +85,8 @@ class _MeasureListStatefullState extends State<MeasureListStatefull> {
                         background: Container(color: Colors.red),
                         direction: DismissDirection.endToStart,
                         onDismissed: (direction) =>
-                            _delete(context, state.measures[index].id),
-                        child: MeasureTitle(
-                          measure: state.measures[index]
-                        ),
+                            measureRepository.delete(state.measures[index].id),
+                        child: MeasureTitle(measure: state.measures[index]),
                       ),
             itemCount: state.hasReachedMax
                 ? state.measures.length
@@ -162,15 +124,15 @@ class BottomLoader extends StatelessWidget {
 class MeasureTitle extends StatelessWidget {
   final Measure measure;
 
-  const MeasureTitle(
-      {Key key, @required this.measure})
-      : super(key: key);
+  MeasureTitle({
+    Key key,
+    @required Measure this.measure,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     var formatter = new DateFormat('dd-MM-yyyy HH:mm');
     String formatted = formatter.format(measure.date);
-    final backendAuthentication = Provider.of<BackendAuthentication>(context);
 
     return ListTile(
       leading: CircleAvatar(
@@ -180,9 +142,9 @@ class MeasureTitle extends StatelessWidget {
       dense: true,
       trailing: Icon(Icons.keyboard_arrow_right),
       onTap: () => MeasureEdit.show(
-          context: context,
-          measure: this.measure,
-          backendAuthentication: backendAuthentication),
+        context: context,
+        measure: this.measure,
+      ),
     );
   }
 }

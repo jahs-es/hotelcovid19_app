@@ -18,7 +18,6 @@ void main() {
     backendAuthentication = MockBackendAuthentication();
     authenticationBloc = MockAuthenticationBloc();
     loginBloc = LoginBloc(
-      backendAuthentication: backendAuthentication,
       authenticationBloc: authenticationBloc,
     );
   });
@@ -31,7 +30,6 @@ void main() {
   test('throws AssertionError when backendAuthentication is null', () {
     expect(
       () => LoginBloc(
-        backendAuthentication: null,
         authenticationBloc: authenticationBloc,
       ),
       throwsAssertionError,
@@ -41,7 +39,6 @@ void main() {
   test('throws AssertionError when authenticationBloc is null', () {
     expect(
       () => LoginBloc(
-        backendAuthentication: backendAuthentication,
         authenticationBloc: null,
       ),
       throwsAssertionError,
