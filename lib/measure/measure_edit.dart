@@ -1,36 +1,18 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:hotelcovid19_app/common/date_time_picker.dart';
 import 'package:hotelcovid19_app/common/platform_exception_alert_dialog.dart';
-import 'package:hotelcovid19_app/services/api_path.dart';
-import 'package:hotelcovid19_app/services/login_repository.dart';
-import 'package:http/http.dart' as http;
+import 'package:hotelcovid19_app/measure/bloc/bloc.dart';
+import 'package:hotelcovid19_app/services/measure_repository.dart';
 
-import 'models/measure.dart';
+import '../models/measure.dart';
+import 'bloc/measure_bloc.dart';
 
 class MeasureEdit extends StatefulWidget {
   final Measure measure;
-  final BackendAuthentication backendAuthentication;
 
-  const MeasureEdit(
-      {Key key, this.measure, @required this.backendAuthentication})
-      : super(key: key);
-
-  static Future<void> show(
-      {BuildContext context,
-      Measure measure,
-      BackendAuthentication backendAuthentication}) async {
-    await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => MeasureEdit(
-            measure: measure, backendAuthentication: backendAuthentication),
-        fullscreenDialog: true,
-      ),
-    );
-  }
+  const MeasureEdit({Key key, this.measure}) : super(key: key);
 
   @override
   _MeasureEditState createState() => _MeasureEditState();
@@ -38,11 +20,27 @@ class MeasureEdit extends StatefulWidget {
 
 class _MeasureEditState extends State<MeasureEdit> {
   final _formKey = GlobalKey<FormState>();
+  final measureRepository = MeasureRepository();
 
   int _id;
   DateTime _date;
   TimeOfDay _time;
-  double _temperatureAt8;
+  Map<String, double> doubleValues = {
+    'temperatureAt8': 0,
+    'temperatureAt20': 0,
+  };
+  Map<String, bool> checkboxValues = {
+    'cought': false,
+    'troubleToBreathe': false,
+    'sputum': false,
+    'soreThroat': false,
+    'ostTaste': false,
+    'flutter': false,
+    'diarrhea': false,
+    'headache': false,
+    'musclePain': false,
+  };
+  String _notes;
 
   @override
   void initState() {
@@ -52,13 +50,24 @@ class _MeasureEditState extends State<MeasureEdit> {
       _id = widget.measure.id;
       _date = widget.measure.date;
       _time = TimeOfDay.fromDateTime(widget.measure.date);
-      _temperatureAt8 = widget.measure.temperatureAt8;
+      doubleValues["temperatureAt8"] = widget.measure.temperatureAt8;
+      doubleValues["temperatureAt20"] = widget.measure.temperatureAt20;
+      checkboxValues["cought"] = widget.measure.cought;
+      checkboxValues["troubleToBreathe"] = widget.measure.troubleToBreathe;
+      checkboxValues["sputum"] = widget.measure.sputum;
+      checkboxValues["soreThroat"] = widget.measure.soreThroat;
+      checkboxValues["ostTaste"] = widget.measure.ostTaste;
+      checkboxValues["flutter"] = widget.measure.flutter;
+      checkboxValues["diarrhea"] = widget.measure.diarrhea;
+      checkboxValues["headache"] = widget.measure.headache;
+      checkboxValues["musclePain"] = widget.measure.musclePain;
+      _notes = widget.measure.notes;
     } else {
       final start = DateTime.now();
 
       _date = DateTime(start.year, start.month, start.day);
       _time = TimeOfDay.fromDateTime(start);
-      _temperatureAt8 = 0;
+      _notes = "";
     }
   }
 
@@ -71,13 +80,37 @@ class _MeasureEditState extends State<MeasureEdit> {
     return false;
   }
 
-  Future<void> _submit() async {
+  Future<void> _submit(BuildContext context) async {
     if (_validateAndSaveForm()) {
       try {
-        DateTime dateToSend = new DateTime(_date.year, _date.month, _date.day, _time.hour, _time.minute);
-        final measure = Measure(id: _id, date: dateToSend, temperatureAt8: _temperatureAt8);
+        DateTime dateToSend = new DateTime(
+          _date.year,
+          _date.month,
+          _date.day,
+          _time.hour,
+          _time.minute,
+        );
 
-        await _sendMeasure(measure);
+        final measure = Measure(
+            id: _id,
+            date: dateToSend,
+            temperatureAt8: doubleValues["temperatureAt8"],
+            temperatureAt20: doubleValues["temperatureAt20"],
+            cought: checkboxValues["cought"],
+            troubleToBreathe: checkboxValues["troubleToBreathe"],
+            sputum: checkboxValues["sputum"],
+            soreThroat: checkboxValues["soreThroat"],
+            ostTaste: checkboxValues["ostTaste"],
+            flutter: checkboxValues["flutter"],
+            diarrhea: checkboxValues["diarrhea"],
+            headache: checkboxValues["headache"],
+            musclePain: checkboxValues["musclePain"],
+            notes: _notes,
+        );
+
+        final measureBloc = BlocProvider.of<MeasureBloc>(context);
+
+        measureBloc.add(Update(measure: measure));
 
         Navigator.of(context).pop();
       } catch (e) {
@@ -89,41 +122,20 @@ class _MeasureEditState extends State<MeasureEdit> {
     }
   }
 
-  Future<void> _sendMeasure(Measure measure) async {
-    String token = await widget.backendAuthentication.getToken();
-    Map<String, dynamic> data = measure.toJson();
-
-    String jsonData = json.encode(data);
-
-    final response = await http.Client().post(
-      APIPath.getMeasuresUrl,
-      headers: {
-        "Content-Type": "application/json",
-        HttpHeaders.authorizationHeader: "Bearer $token"
-      },
-      body: jsonData,
-    );
-
-    if (response.statusCode == 201) {
-      print('Saved');
-    } else {
-      throw Exception('Error saving measure');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         elevation: 2.0,
-        title: Text(widget.measure == null ? 'New Measure' : 'Edit Measure'),
+        title: Text(
+            widget.measure == null ? 'Nueva medida' : 'Editando medida'),
         actions: <Widget>[
           FlatButton(
             child: Text(
               'Save',
               style: TextStyle(fontSize: 18, color: Colors.white),
             ),
-            onPressed: _submit,
+            onPressed: () => _submit(context),
           ),
         ],
       ),
@@ -165,17 +177,51 @@ class _MeasureEditState extends State<MeasureEdit> {
         onSelectedDate: (date) => setState(() => _date = date),
         onSelectedTime: (time) => setState(() => _time = time),
       ),
-      TextFormField(
-        decoration: InputDecoration(labelText: 'Temperatura a las 08:00'),
-        initialValue: _temperatureAt8.toString(),
-        keyboardType: TextInputType.numberWithOptions(
-          signed: false,
-          decimal: true,
-        ),
-        validator: (value) =>
-            value.isNotEmpty ? null : 'Temperature can\'t be empty',
-        onSaved: (value) => _temperatureAt8 = double.tryParse(value) ?? 0,
-      ),
+      _buildTemperatureField('Temperatura a las 08:00', "temperatureAt8"),
+      _buildTemperatureField('Temperatura a las 20:00', "temperatureAt20"),
+      _buildCheckBox('¿Tos seca?', "cought"),
+      _buildCheckBox('¿Dificultad para respirar?', "troubleToBreathe"),
+      _buildCheckBox('¿Esputos?', "sputum"),
+      _buildCheckBox('¿Dolor de gargante?', "soreThroat"),
+      _buildCheckBox('¿Perdida del gusto?', "ostTaste"),
+      _buildCheckBox('¿Palpitaciones?', "flutter"),
+      _buildCheckBox('¿Diarrea?', "diarrhea"),
+      _buildCheckBox('¿Dolor de cabeza?', "headache"),
+      _buildCheckBox('¿Dolor muscular?', "musclePain"),
+      _buildNotesField(),
     ];
   }
+
+  Widget _buildTemperatureField(String labelText, String key) {
+    return TextFormField(
+      decoration: InputDecoration(labelText: labelText),
+      initialValue: doubleValues[key].toString(),
+      keyboardType: TextInputType.numberWithOptions(
+        signed: false,
+        decimal: true,
+      ),
+      validator: (value) =>
+      value.isNotEmpty ? null : 'Temperature can\'t be empty',
+      onSaved: (value) => doubleValues[key] = double.tryParse(value) ?? 0,
+    );
+  }
+
+  Widget _buildNotesField() {
+    return TextFormField(
+      decoration: InputDecoration(labelText: "Notas"),
+      initialValue: _notes,
+      onSaved: (value) => _notes = value,
+    );
+  }
+
+  Widget _buildCheckBox(String labelText, String key) {
+    return new CheckboxListTile(
+      value: checkboxValues[key],
+      onChanged: (bool newValue) =>
+          setState(() => checkboxValues[key] = newValue),
+      title: new Text(labelText),
+      controlAffinity: ListTileControlAffinity.leading,
+      activeColor: Colors.blueAccent,);
+  }
+
 }

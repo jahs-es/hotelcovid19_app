@@ -1,85 +1,61 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
-import 'package:hotelcovid19_app/measure/models/measure.dart';
-import 'package:hotelcovid19_app/services/api_path.dart';
-import 'package:hotelcovid19_app/services/login_repository.dart';
-import 'package:meta/meta.dart';
-import 'package:rxdart/rxdart.dart';
-import 'package:http/http.dart' as http;
 import 'package:bloc/bloc.dart';
 import 'package:hotelcovid19_app/measure/bloc/bloc.dart';
+import 'package:hotelcovid19_app/models/measure.dart';
+import 'package:hotelcovid19_app/services/measure_repository.dart';
 
 class MeasureBloc extends Bloc<MeasureEvent, MeasureState> {
-  final http.Client httpClient;
-  final BackendAuthentication backendAuthentication;
-
-  MeasureBloc(
-      {@required this.httpClient, @required this.backendAuthentication});
-
-  @override
-  Stream<MeasureState> transformEvents(
-    Stream<MeasureEvent> events,
-    Stream<MeasureState> Function(MeasureEvent event) next,
-  ) {
-    return super.transformEvents(
-      events.debounceTime(
-        Duration(milliseconds: 500),
-      ),
-      next,
-    );
-  }
+  final measureRepository = MeasureRepository();
 
   @override
   get initialState => MeasureUninitialized();
 
   @override
   Stream<MeasureState> mapEventToState(MeasureEvent event) async* {
-    final currentState = state;
-    if (event is Fetch && !_hasReachedMax(currentState)) {
-      try {
-        if (currentState is MeasureUninitialized) {
-          final measures = await _fetch(0, 20);
-          yield MeasureLoaded(measures: measures, hasReachedMax: false);
-          return;
-        }
-        if (currentState is MeasureLoaded) {
-          final measures = await _fetch(currentState.measures.length, 20);
-          yield measures.isEmpty
-              ? currentState.copyWith(hasReachedMax: true)
-              : MeasureLoaded(
-                  measures: currentState.measures + measures,
-                  hasReachedMax: false,
-                );
-        }
-      } catch (_) {
-        yield MeasureError();
-      }
+    if (event is Fetch) {
+      yield* _mapMeasureFetchToState();
+    } else if (event is Update) {
+      yield* _mapMeasureUpdateToState(event);
     }
   }
 
-  bool _hasReachedMax(MeasureState state) => state is MeasureLoaded && state.hasReachedMax;
+  Stream<MeasureState> _mapMeasureFetchToState() async* {
+    try {
+      if (state is MeasureUninitialized) {
+        final measures = await measureRepository.getMeasures();
+        yield MeasureLoaded(measures: measures);
+        return;
+      }
+    } catch (_) {
+      yield MeasureError();
+    }
+  }
 
-  Future<List<Measure>> _fetch(int startIndex, int limit) async {
-    String token = await this.backendAuthentication.getToken();
+  Stream<MeasureState> _mapMeasureUpdateToState(Update event) async* {
+    if (state is MeasureLoaded) {
+      try {
+        bool newMeasure = event.measure.id == null ? true : false;
+        Measure savedMeasure = await measureRepository.save(event.measure);
 
-    final response = await httpClient.get(APIPath.getMeasuresUrl, headers: {
-      "Content-Type": "application/json",
-      HttpHeaders.authorizationHeader: "Bearer $token"
-    });
+        if (newMeasure) {
+          final List<Measure> updatedMeasures  =
+              List.from((state as MeasureLoaded).measures)..add(savedMeasure);
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body) as List;
+          yield MeasureLoaded(measures: updatedMeasures);
+        } else {
+          List<Measure> updatedMeasures =
+              (state as MeasureLoaded).measures.map((measure) {
+            return measure.id == event.measure.id ? event.measure : measure;
+          }).toList();
 
-      List<Measure> measuresList = [];
+          yield MeasureLoaded(measures: updatedMeasures);
+        }
 
-      data.forEach((measure) {
-        measuresList.add(Measure.fromJson(measure));
-      });
-      return measuresList;
-    } else {
-      throw Exception('error fetching measures');
+        return;
+      } catch (_) {
+        yield MeasureError();
+      }
     }
   }
 }
