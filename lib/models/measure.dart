@@ -22,6 +22,25 @@ class Measure extends Equatable {
   final bool musclePain;
   final String notes;
 
+  Measure copyWith({int id}) {
+    return Measure(
+      id: id,
+      date: this.date,
+      temperatureAt8: this.temperatureAt8,
+      temperatureAt20: this.temperatureAt20,
+      cought: this.cought,
+      troubleToBreathe: this.troubleToBreathe,
+      sputum: this.sputum,
+      soreThroat: this.soreThroat,
+      ostTaste: this.ostTaste,
+      flutter: this.flutter,
+      diarrhea: this.diarrhea,
+      headache: this.headache,
+      musclePain: this.musclePain,
+      notes: this.notes
+    );
+  }
+
   const Measure(
       {this.id,
       this.date,

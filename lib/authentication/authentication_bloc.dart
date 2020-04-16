@@ -9,9 +9,8 @@ class AuthenticationBloc
     extends Bloc<AuthenticationEvent, AuthenticationState> {
   final BackendAuthentication backendAuthentication;
 
-  AuthenticationBloc({
-    @required this.backendAuthentication,
-  }) : assert(backendAuthentication != null);
+  AuthenticationBloc({@required this.backendAuthentication})
+      : assert(backendAuthentication != null);
 
   @override
   AuthenticationState get initialState => AuthenticationUninitialized();

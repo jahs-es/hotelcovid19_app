@@ -37,9 +37,8 @@ class BackendAuthentication implements AuthBase {
 
     if (response.statusCode == 200) {
       return loginFromJson(response.body).token;
-    } else {
-      return null;
     }
+    return null;
   }
 
   Future<Login> account() async {
@@ -53,10 +52,9 @@ class BackendAuthentication implements AuthBase {
 
       if (response.statusCode == 200) {
         return loginFromJson(response.body);
-      } else {
-        return null;
       }
     }
+    return null;
   }
 
   Future<void> deleteToken() async {
