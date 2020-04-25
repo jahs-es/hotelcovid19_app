@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ui';
 
 import 'package:equatable/equatable.dart';
 
@@ -24,21 +25,20 @@ class Measure extends Equatable {
 
   Measure copyWith({int id}) {
     return Measure(
-      id: id,
-      date: this.date,
-      temperatureAt8: this.temperatureAt8,
-      temperatureAt20: this.temperatureAt20,
-      cought: this.cought,
-      troubleToBreathe: this.troubleToBreathe,
-      sputum: this.sputum,
-      soreThroat: this.soreThroat,
-      ostTaste: this.ostTaste,
-      flutter: this.flutter,
-      diarrhea: this.diarrhea,
-      headache: this.headache,
-      musclePain: this.musclePain,
-      notes: this.notes
-    );
+        id: id,
+        date: this.date,
+        temperatureAt8: this.temperatureAt8,
+        temperatureAt20: this.temperatureAt20,
+        cought: this.cought,
+        troubleToBreathe: this.troubleToBreathe,
+        sputum: this.sputum,
+        soreThroat: this.soreThroat,
+        ostTaste: this.ostTaste,
+        flutter: this.flutter,
+        diarrhea: this.diarrhea,
+        headache: this.headache,
+        musclePain: this.musclePain,
+        notes: this.notes);
   }
 
   const Measure(
@@ -76,7 +76,48 @@ class Measure extends Equatable {
       ];
 
   @override
-  String toString() => 'Measure { id: $id }';
+  int get hashCode => hashValues(
+      id,
+      date,
+      temperatureAt8,
+      temperatureAt20,
+      cought,
+      troubleToBreathe,
+      sputum,
+      soreThroat,
+      ostTaste,
+      flutter,
+      diarrhea,
+      headache,
+      musclePain,
+      notes);
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (runtimeType != other.runtimeType) return false;
+    final Measure otherMeasure = other;
+    return id == otherMeasure.id &&
+        date == otherMeasure.date &&
+        temperatureAt8 == otherMeasure.temperatureAt8 &&
+        temperatureAt20 == otherMeasure.temperatureAt20 &&
+        cought == otherMeasure.cought &&
+        troubleToBreathe == otherMeasure.troubleToBreathe &&
+        sputum == otherMeasure.sputum &&
+        soreThroat == otherMeasure.soreThroat &&
+        ostTaste == otherMeasure.ostTaste &&
+        flutter == otherMeasure.flutter &&
+        diarrhea == otherMeasure.diarrhea &&
+        headache == otherMeasure.headache &&
+        musclePain == otherMeasure.musclePain &&
+        notes == otherMeasure.notes;
+  }
+
+  @override
+  String toString() => 'id: $id, date: $date, temperatureAt8: $temperatureAt8,'
+      ' temperatureAt20: $temperatureAt20, cought: $cought, troubleToBreathe: $troubleToBreathe,'
+      ' sputum: $sputum, soreThroat: $soreThroat, ostTaste: $ostTaste, flutter: $flutter,'
+      ' diarrhea: $diarrhea, headache: $headache, musclePain: $musclePain, notes: $notes';
 
   Measure.fromJson(Map<String, dynamic> json)
       : id = json['id'],
