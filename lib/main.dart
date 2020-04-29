@@ -7,6 +7,7 @@ import 'package:hotelcovid19_app/home_screen.dart';
 import 'package:hotelcovid19_app/login/login_page.dart';
 import 'package:hotelcovid19_app/measure/bloc/bloc.dart';
 import 'package:hotelcovid19_app/services/login_repository.dart';
+import 'package:hotelcovid19_app/services/measure_repository.dart';
 import 'package:hotelcovid19_app/splash/splash.dart';
 
 class SimpleBlocDelegate extends BlocDelegate {
@@ -52,6 +53,8 @@ class App extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final measureRepository = MeasureRepository();
+
     return MaterialApp(
       title: 'Hcovid19',
       theme: ThemeData(
@@ -61,7 +64,7 @@ class App extends StatelessWidget {
         builder: (context, state) {
           if (state is AuthenticationAuthenticated) {
             return BlocProvider(
-              create: (BuildContext context) => MeasureBloc()..add(Fetch()),
+              create: (BuildContext context) => MeasureBloc(measureRepository: measureRepository)..add(Fetch()),
               child: HomeScreen(),
             );
           }

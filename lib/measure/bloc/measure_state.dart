@@ -23,5 +23,5 @@ class MeasureLoaded extends MeasureState {
   List<Object> get props => [measures];
 
   @override
-  String toString() => 'MeasureLoaded { posts: ${measures.length}}';
+  String toString() => 'MeasureLoaded { measures: ${measures.length}}';
 }
