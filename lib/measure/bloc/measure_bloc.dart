@@ -1,12 +1,16 @@
 import 'dart:async';
 
 import 'package:bloc/bloc.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hotelcovid19_app/measure/bloc/bloc.dart';
 import 'package:hotelcovid19_app/models/measure.dart';
 import 'package:hotelcovid19_app/services/measure_repository.dart';
 
 class MeasureBloc extends Bloc<MeasureEvent, MeasureState> {
-  final measureRepository = MeasureRepository();
+  final MeasureRepository measureRepository;
+
+  MeasureBloc({@required this.measureRepository})
+      : assert(measureRepository != null);
 
   @override
   get initialState => MeasureUninitialized();
@@ -39,7 +43,7 @@ class MeasureBloc extends Bloc<MeasureEvent, MeasureState> {
         Measure savedMeasure = await measureRepository.save(event.measure);
 
         if (newMeasure) {
-          final List<Measure> updatedMeasures  =
+          final List<Measure> updatedMeasures =
               List.from((state as MeasureLoaded).measures)..add(savedMeasure);
 
           yield MeasureLoaded(measures: updatedMeasures);
