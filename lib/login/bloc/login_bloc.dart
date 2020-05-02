@@ -7,15 +7,17 @@ import 'package:hotelcovid19_app/services/login_repository.dart';
 import 'package:meta/meta.dart';
 
 part 'login_event.dart';
+
 part 'login_state.dart';
 
 class LoginBloc extends Bloc<LoginEvent, LoginState> {
-  final backendAuthentication = BackendAuthentication();
+  final BackendAuthentication backendAuthentication;
   final AuthenticationBloc authenticationBloc;
 
-  LoginBloc({
-    @required this.authenticationBloc,
-  }) : assert(authenticationBloc != null);
+  LoginBloc(
+      {@required this.backendAuthentication, @required this.authenticationBloc})
+      : assert(authenticationBloc != null),
+        assert(backendAuthentication != null);
 
   @override
   LoginState get initialState => LoginInitial();

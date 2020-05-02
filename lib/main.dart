@@ -64,12 +64,16 @@ class App extends StatelessWidget {
         builder: (context, state) {
           if (state is AuthenticationAuthenticated) {
             return BlocProvider(
-              create: (BuildContext context) => MeasureBloc(measureRepository: measureRepository)..add(Fetch()),
+              create: (BuildContext context) =>
+                  MeasureBloc(measureRepository: measureRepository)
+                    ..add(Fetch()),
               child: HomeScreen(),
             );
           }
           if (state is AuthenticationUnauthenticated) {
-            return LoginPage();
+            return LoginPage(
+              backendAuthentication: this.backendAuthentication,
+            );
           }
           if (state is AuthenticationLoading) {
             return LoadingIndicator();

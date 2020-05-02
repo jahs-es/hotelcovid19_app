@@ -24,10 +24,6 @@ void main() {
     });
 
     group('LoginFailure', () {
-      test('props are [error]', () {
-        expect(LoginFailure(error: 'error').props, ['error']);
-      });
-
       test('toString is LoginFailure { error: error }', () {
         expect(
           LoginFailure(error: 'error').toString(),
