@@ -7,6 +7,7 @@ import 'package:hotelcovid19_app/services/login_repository.dart';
 import 'package:mockito/mockito.dart';
 
 class MockBackendAuthentication extends Mock implements BackendAuthentication {}
+
 class MockAuthenticationBloc extends Mock implements AuthenticationBloc {}
 
 void main() {
@@ -19,6 +20,7 @@ void main() {
     authenticationBloc = MockAuthenticationBloc();
     loginBloc = LoginBloc(
       authenticationBloc: authenticationBloc,
+      backendAuthentication: backendAuthentication,
     );
   });
 

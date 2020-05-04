@@ -7,6 +7,10 @@ measures that show his health status at every time. That measure are sent to be 
 
 Solution is done using bloc for state management. External data comes from a backend accessed using API Rest.
 
+Test using flutter_test and bloc_test.
+
+CI/CD workflow using GitHub Actions. 
+
 Security use JWT token to access secured endpoints. 
 
 ## Backend configuration 
